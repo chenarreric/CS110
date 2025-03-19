@@ -1,0 +1,20 @@
+1.simple_fn :  它有一行多余的指令 addi a0, t0, 2025
+2.函数 naive_mod 使用了 s0 寄存器（一个被调用者保存的寄存器），
+但没有在函数开始和结束时保存和恢复它
+3.mul_arr , s0, s1
+4.helper_fn ,s0
+5.naive_mod s0
+
+2.在 RISC-V 中，我们通过跳转并存储返回地址到 ra 寄存器来调用函数。调用约定是否适用于跳转到 naive_mod_loop 或 naive_mod_end 标签？
+
+    不适用。调用约定仅适用于函数调用（通过 jal 或 jalr 指令），而不适用于普通的跳转（如 j 指令）。naive_mod_loop 和 naive_mod_end 是标签，用于函数内部的跳转，不涉及函数调用
+
+3.为什么我们需要在 mul_arr 的序言中保存 ra，而在其他函数中不需要？
+
+    因为 mul_arr 调用了另一个函数 helper_fn，而 jal 指令会覆盖 ra 寄存器的值。为了在 mul_arr 返回时能够正确跳转回调用者，必须保存 ra。
+
+    其他函数（如 simple_fn 和 naive_mod）没有调用其他函数，因此不需要保存 ra
+
+4. 为什么 helper_fn 中的调用约定错误没有被 CC 检查器报告？
+
+    因为 helper_fn 没有被标记为全局函数（即没有使用 .globl 指令）。Venus 的调用约定检查器只会检查被标记为全局函数的函数。
